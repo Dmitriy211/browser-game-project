@@ -6,7 +6,7 @@ This will start a game server on localhost:2323 (you can change port in the app.
 
 Controls: \n
   Move left - A / Arrow left \n
-  Move right - D / Arrow right \n
+  Move right - D / Arrow right /n
   Jump - W / Arrow up
   
 You also can jump off the walls
