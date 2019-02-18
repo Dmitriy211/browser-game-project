@@ -169,6 +169,7 @@ io.sockets.on('connection', function(socket){
 
     // put unique player in list on a connection
     socket.id = Math.random(); //generate id
+    socket.emit('playerId', socket.id);
     list_of_sockets[socket.id] = socket;
 
     var user = User(socket.id, '#'+Math.random().toString(16).substr(-6)); //random color

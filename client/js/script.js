@@ -3,13 +3,19 @@ onload = function(){
     game_screen.font = '30px Arial';
     
     var socket = io();
-
+    var playerId = null;
+    socket.on('playerId', function(id){
+        playerId = id;
+    })
     // DRAW POSITION
     socket.on('newPosition', function(data){
         game_screen.clearRect(0,0,1000,500);
         for(var i = 0; i < data.length; i++){
             game_screen.fillStyle = data[i].color;
             game_screen.fillRect(data[i].x, data[i].y, -30, -50);
+            if (data[i].id == playerId){
+                game_screen.fillRect(data[i].x - 30 + 10, data[i].y - 50 - 20, 10, 10);
+            }
         }
     });
 
