@@ -22,11 +22,10 @@ var number_of_users = 0;
 var list_of_users = {};
 var list_of_sockets = {};
 
-//Player class
 var User = function(id=0, color="#000000"){
     var self = {
         x: 250,
-        y: 0,
+        y: 50,
         id: id,
         vVelocity: 0,
         hVelocity: 0,
@@ -47,71 +46,13 @@ var User = function(id=0, color="#000000"){
 
     self.updatePosition = function(){
         self.gravity = 1;
-        if (self.x <= 0 + 30){ // wall sticking
-            if (self.hVelocity < 0)
-                self.hVelocity = 0;
-            self.stick = 1;
-            self.x = 0 + 30;
-            //self.left = false;
-            if (!self.grounded){
-                self.jump = false;
-            }
-            if (self.vVelocity > 1){
-                self.gravity = -0.2;
-            }
-            else if (self.vVelocity > 0){
-                self.vVelocity = 1;
-            }
-        }
-        else if (self.x >= 1000){
-            if (self.hVelocity > 0)
-                self.hVelocity = 0;
-            self.stick = 2;
-            self.x = 1000;
-            //self.right = false;
-            if (!self.grounded){
-                self.jump = false;
-            }
-            if (self.vVelocity > 1){
-                self.gravity = -0.2;
-            }
-            else if (self.vVelocity > 0){
-                self.vVelocity = 1;
-            }
-        }
-        else {
-            self.stick = 0;
-        }
-
-
-        if (self.y < 0 + 50){
-            self.vVelocity = 0;
-            self.y = 0 + 50;
-        }
-        else if (self.y >= 500){ // floor sticking
-            if (self.hVelocity > 0 && !self.right){
-                self.hVelocity -= self.speed*2;
-                if (self.hVelocity <= 0)
-                    self.hVelocity = 0;
-            }
-            else if (self.hVelocity < 0 && !self.left){
-                self.hVelocity += self.speed*2;
-                if (self.hVelocity >= 0)
-                    self.hVelocity = 0;
-            }
-
-            self.vVelocity = 0;
-            self.grounded = true;
-            self.jump = false;
-            self.y = 500;
-        }
-        else { // mid air
-            self.vVelocity += self.gravity;
-            self.grounded = false;
-            if (self.stick == 0)
-                self.jump = true;
-        }
-
+        self.checkCollision([
+            Block(0,500,1000,1),
+            Block(-20, 0, 20, 500),
+            Block(0, -20, 1000, 20),
+            Block(1000, 0, 20, 500),
+            Block(150,400,200,100),
+        ]);
         if(self.right){ // move
             if (self.hVelocity < self.speed*20) {
                 if (self.grounded)
@@ -148,6 +89,9 @@ var User = function(id=0, color="#000000"){
                 self.vVelocity = -self.jump_power;
             }
         }
+        if (!self.up && self.jump && self.vVelocity < 0) {
+            self.vVelocity *= 0.8;
+        }
 
 
         if(self.down);
@@ -155,6 +99,109 @@ var User = function(id=0, color="#000000"){
 
         self.y += self.vVelocity;
         self.x += self.hVelocity;
+    }
+    
+    self.checkCollision = function(blocks){
+        var found_floor = false;
+        var found_wall = false;
+        var stick = 0;
+        for (var i = 0; i < blocks.length ; i++){
+            var block = blocks[i];
+            //check floor
+            if (self.y >= block.top && self.y <= block.top + 1 + (self.vVelocity + Math.abs(self.vVelocity))/2 && self.x >= block.left && self.x <= block.right + 30){
+                if (self.hVelocity > 0 && !self.right){
+                    self.hVelocity -= self.speed*1.5;
+                    if (self.hVelocity <= 0)
+                        self.hVelocity = 0;
+                }
+                else if (self.hVelocity < 0 && !self.left){
+                    self.hVelocity += self.speed*1.5;
+                    if (self.hVelocity >= 0)
+                        self.hVelocity = 0;
+                }
+
+                self.vVelocity = 0;
+                self.grounded = true;
+                self.jump = false;
+                self.y = block.top;
+
+                found_floor = true;
+            }
+            //check ceiling
+            else if (self.y < block.bottom + 50 && self.y >= block.bottom + 50 - 1 + (self.vVelocity - Math.abs(self.vVelocity))/2 && self.x >= block.left && self.x <= block.right + 30){
+                self.vVelocity = 0;
+                self.y = block.bottom + 50;
+
+                found_floor = true;
+            }
+            
+
+            //check left wall
+            if (self.x <= block.right + 30 && self.x >= block.right + 30 - 1 + (self.hVelocity - Math.abs(self.hVelocity))/2 && self.y < block.bottom + 50 && self.y > block.top){
+                if (self.hVelocity < 0)
+                    self.hVelocity = 0;
+                self.stick = 1;
+                self.x = block.right + 30;
+                if (!self.grounded){
+                    self.jump = false;
+                }
+                if (self.vVelocity > 1){
+                    self.gravity = -0.2;
+                }
+
+                found_wall = true;
+            }
+            //check right wall
+            else if (self.x >= block.left && self.x <= block.left + 1 + (self.hVelocity + Math.abs(self.hVelocity))/2 && self.y < block.bottom + 50 && self.y > block.top){
+                if (self.hVelocity > 0)
+                    self.hVelocity = 0;
+                self.stick = 2;
+                self.x = block.left;
+                if (!self.grounded){
+                    self.jump = false;
+                }
+                if (self.vVelocity > 1){
+                    self.gravity = -0.2;
+                }
+
+                found_wall = true;
+            }
+        }
+
+        if (!found_wall){
+            self.stick = 0;
+        }
+        else {
+            if (self.up)
+                self.up = false;
+        }
+
+        if (!found_floor){
+            self.grounded = false;
+            if (self.stick == 0)
+                self.jump = true;
+        }
+
+        if (!self.grounded){
+            self.vVelocity += self.gravity;
+        }
+        
+    }
+    return self;
+}
+
+// BLOCK CLASS
+var Block = function(x = 0, y = 0, width = 20, height = 20, color = "#000000"){
+    var self = {
+        x: x,
+        y: y,
+        width: width,
+        height: height,
+        color: color,
+        left: x,
+        right: x + width,
+        top: y,
+        bottom: y + height,
     }
     return self;
 }
@@ -204,6 +251,7 @@ setInterval(function(){
     var info_package = [];
     for(var i in list_of_users){
         var user = list_of_users[i];
+        
         user.updatePosition();
         info_package.push({
             x: user.x,
