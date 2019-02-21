@@ -46,13 +46,6 @@ var User = function(id=0, color="#000000"){
 
     self.updatePosition = function(){
         self.gravity = 1;
-        self.checkCollision([
-            Block(0,500,1000,1),
-            Block(-20, 0, 20, 500),
-            Block(0, -20, 1000, 20),
-            Block(1000, 0, 20, 500),
-            Block(150,400,200,100),
-        ]);
         if(self.right){ // move
             if (self.hVelocity < self.speed*20) {
                 if (self.grounded)
@@ -161,7 +154,7 @@ var User = function(id=0, color="#000000"){
                     self.jump = false;
                 }
                 if (self.vVelocity > 1){
-                    self.gravity = -0.2;
+                    self.gravity = -0.5;
                 }
 
                 found_wall = true;
@@ -171,10 +164,10 @@ var User = function(id=0, color="#000000"){
         if (!found_wall){
             self.stick = 0;
         }
-        else {
-            if (self.up)
-                self.up = false;
-        }
+        // else {
+        //     if (self.up)
+        //         self.up = false;
+        // }
 
         if (!found_floor){
             self.grounded = false;
@@ -205,6 +198,17 @@ var Block = function(x = 0, y = 0, width = 20, height = 20, color = "#000000"){
     }
     return self;
 }
+
+var list_of_blocks = [  // list of blocks (temp)
+    Block(0,500,1000,20), // floor
+    Block(-20, 0, 20, 500), // left wall
+    Block(0, -20, 1000, 20), // ceiling
+    Block(1000, 0, 20, 500), // right wall
+
+    Block(150,400,200,100),
+    Block(500,370,200,20),
+    Block(850,100,20, 280)
+]
 
 // USER EVENTS
 var io = require('socket.io')(serv,{});
@@ -252,6 +256,7 @@ setInterval(function(){
     for(var i in list_of_users){
         var user = list_of_users[i];
         
+        user.checkCollision(list_of_blocks);
         user.updatePosition();
         info_package.push({
             x: user.x,
@@ -262,7 +267,7 @@ setInterval(function(){
     }
     for(var i in list_of_sockets){
         var socket = list_of_sockets[i];
-        socket.emit('newPosition', info_package);
+        socket.emit('newPosition', info_package, list_of_blocks);
     }
 },1000/60);
 
