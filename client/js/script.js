@@ -8,7 +8,7 @@ onload = function(){
         playerId = id;
     })
     // DRAW POSITION
-    socket.on('newPosition', function(data){
+    socket.on('newPosition', function(data, blocks){
         game_screen.clearRect(0,0,1000,500);
         for(var i = 0; i < data.length; i++){
             game_screen.fillStyle = data[i].color;
@@ -16,6 +16,10 @@ onload = function(){
             if (data[i].id == playerId){
                 game_screen.fillRect(data[i].x - 30 + 10, data[i].y - 50 - 20, 10, 10);
             }
+        }
+        for(var i = 0; i < blocks.length; i++){
+            game_screen.fillStyle = blocks[i].color;
+            game_screen.fillRect(blocks[i].x, blocks[i].y, blocks[i].width, blocks[i].height);
         }
     });
 
